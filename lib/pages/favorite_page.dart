@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_application_1/models/song_model.dart';
+import 'package:flutter_application_1/widgets/song_card.dart';
+import 'package:flutter_application_1/providers/favorite_provider.dart';
+
+class FavoritePage extends StatelessWidget {
+  final List<Song> allSongs;
+
+  const FavoritePage({
+    super.key,
+    required this.allSongs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final favProvider = context.watch<FavoriteProvider>();
+    final favoriteSongs = allSongs
+        .where((song) => favProvider.isFavorite(song.id))
+        .toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Favorite Songs (${favoriteSongs.length})',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: favoriteSongs.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    size: 64,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Belum ada lagu favorit',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                  ),
+                ],
+              ),    
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: favoriteSongs.length,
+              itemBuilder: (context, index) {
+                final song = favoriteSongs[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: SongCard(
+                    song: song,
+                    playlist: favoriteSongs,
+                    index: index,
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}

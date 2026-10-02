@@ -5,26 +5,39 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/providers/favorite_provider.dart';
+
+class _TestHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
+  }
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUpAll(() {
+    HttpOverrides.global = _TestHttpOverrides();
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('App smoke test', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final favProvider = FavoriteProvider();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider<FavoriteProvider>.value(
+          value: favProvider,
+          child: const MyApp(),
+        ),
+      );
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Discover Vibes'), findsOneWidget);
   });
 }
